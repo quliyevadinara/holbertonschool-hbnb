@@ -1,6 +1,6 @@
 # HBnB Diagrams — Mermaid Source
 
-Copy any block below into https://mermaid.live to render or edit.
+Copy any block below into https://mermaid.live to render or edit. GitHub renders these blocks automatically.
 
 ---
 
@@ -8,25 +8,56 @@ Copy any block below into https://mermaid.live to render or edit.
 
 ```mermaid
 classDiagram
-    class PresentationLayer {
-        <<Interface>>
-        +UserAPI
-        +PlaceAPI
-        +ReviewAPI
+    direction TB
+
+    namespace PresentationLayer {
+        class UserAPI
+        class PlaceAPI
+        class ReviewAPI
+        class AmenityAPI
     }
-    class BusinessLogicLayer {
-        +User
-        +Place
-        +Review
-        +Amenity
+
+    namespace BusinessLogicLayer {
+        class HBnBFacade {
+            <<Facade>>
+            +create_user(data)
+            +update_user(user_id, data)
+            +create_place(owner_id, data)
+            +get_places(filters)
+            +create_review(user_id, data)
+            +get_reviews_by_place(place_id)
+            +create_amenity(data)
+        }
+        class User
+        class Place
+        class Review
+        class Amenity
     }
-    class PersistenceLayer {
-        +DatabaseAccess
-        +Repositories
-        +ORM_SQLAlchemy
+
+    namespace PersistenceLayer {
+        class Repository {
+            <<Interface>>
+            +add(obj)
+            +get(obj_id)
+            +get_all()
+            +update(obj_id, data)
+            +delete(obj_id)
+        }
+        class DatabaseAccess
     }
-    PresentationLayer --> BusinessLogicLayer : Facade pattern
-    BusinessLogicLayer --> PersistenceLayer : Database operations
+
+    UserAPI --> HBnBFacade : Facade pattern
+    PlaceAPI --> HBnBFacade : Facade pattern
+    ReviewAPI --> HBnBFacade : Facade pattern
+    AmenityAPI --> HBnBFacade : Facade pattern
+
+    HBnBFacade --> User : manages
+    HBnBFacade --> Place : manages
+    HBnBFacade --> Review : manages
+    HBnBFacade --> Amenity : manages
+
+    HBnBFacade --> Repository : Database operations
+    Repository --> DatabaseAccess : reads / writes
 ```
 
 ---
@@ -36,23 +67,25 @@ classDiagram
 ```mermaid
 classDiagram
     class BaseModel {
+        <<abstract>>
         +UUID4 id
         +datetime created_at
         +datetime updated_at
-        +save()
-        +to_dict()
-        +delete()
+        +save() void
+        +update(data) void
+        +to_dict() dict
     }
 
     class User {
         +str first_name
         +str last_name
         +str email
-        +str password
+        -str password
         +bool is_admin
-        +register()
-        +update_profile()
-        +delete()
+        +register() User
+        +update_profile(data) void
+        +delete() void
+        +verify_password(password) bool
     }
 
     class Place {
@@ -61,41 +94,45 @@ classDiagram
         +float price
         +float latitude
         +float longitude
-        +UUID4 owner_id
-        +create()
-        +update()
-        +list_by_criteria()
-        +delete()
+        +User owner
+        +List~Amenity~ amenities
+        +create() Place
+        +update(data) void
+        +delete() void
+        +list() List~Place~
+        +add_amenity(amenity) void
+        +remove_amenity(amenity) void
     }
 
     class Review {
         +int rating
-        +str text
-        +UUID4 place_id
-        +UUID4 user_id
-        +submit()
-        +update()
-        +delete()
-        +validate_rating()
+        +str comment
+        +User user
+        +Place place
+        +create() Review
+        +update(data) void
+        +delete() void
+        +list_by_place(place_id) List~Review~
     }
 
     class Amenity {
         +str name
         +str description
-        +create()
-        +list()
-        +delete()
+        +create() Amenity
+        +update(data) void
+        +delete() void
+        +list() List~Amenity~
     }
 
-    BaseModel <|-- User : inherits
-    BaseModel <|-- Place : inherits
-    BaseModel <|-- Review : inherits
-    BaseModel <|-- Amenity : inherits
+    BaseModel <|-- User
+    BaseModel <|-- Place
+    BaseModel <|-- Review
+    BaseModel <|-- Amenity
 
-    User "1" --> "*" Place : owns
-    User "1" --> "*" Review : writes
-    Place "1" --> "*" Review : has
-    Place "*" --> "*" Amenity : has amenities
+    User "1" --> "0..*" Place : owns
+    User "1" --> "0..*" Review : writes
+    Place "1" *-- "0..*" Review : receives
+    Place "0..*" o-- "0..*" Amenity : includes
 ```
 
 ---
@@ -104,21 +141,29 @@ classDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant API
-    participant BusinessLogic
-    participant Database
+    actor Client
+    participant API as API (Presentation Layer)
+    participant BL as HBnBFacade (Business Logic Layer)
+    participant DB as Repository (Persistence Layer)
 
-    Client->>API: POST /api/v1/users (email, password, name)
-    API->>BusinessLogic: validate_and_create(data)
-    BusinessLogic->>Database: check_email_exists(email)
-    Database-->>BusinessLogic: False
-    BusinessLogic->>Database: save_user(hashed_data)
-    Database-->>BusinessLogic: user_id, created_at
-    BusinessLogic-->>API: UserDTO (id, email)
-    API-->>Client: 201 Created {id, email, created_at}
-
-    Note over BusinessLogic,Database: alt [email exists] → 409 Conflict
+    Client->>API: POST /api/v1/users {first_name, last_name, email, password}
+    API->>BL: create_user(data)
+    BL->>BL: Validate fields (required, email format)
+    break invalid data
+        BL-->>API: ValidationError
+        API-->>Client: 400 Bad Request
+    end
+    BL->>DB: get_user_by_email(email)
+    DB-->>BL: existing user or None
+    break email already registered
+        BL-->>API: ConflictError
+        API-->>Client: 409 Conflict
+    end
+    BL->>BL: Create User, hash password
+    BL->>DB: add(user)
+    DB-->>BL: saved user
+    BL-->>API: user data (without password)
+    API-->>Client: 201 Created {id, first_name, last_name, email}
 ```
 
 ---
@@ -127,21 +172,31 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant API
-    participant BusinessLogic
-    participant Database
+    actor Client
+    participant API as API (Presentation Layer)
+    participant BL as HBnBFacade (Business Logic Layer)
+    participant DB as Repository (Persistence Layer)
 
-    Client->>API: POST /api/v1/places (JWT, place data)
-    Note over API: Verify JWT — 401 if invalid
-    API->>BusinessLogic: create_place(owner_id, payload)
-    Note over BusinessLogic: Validate fields
-    BusinessLogic->>Database: insert_place(place_record)
-    Database-->>BusinessLogic: place_id, created_at
-    BusinessLogic->>Database: link_amenities(place_id, amenity_ids)
-    Database-->>BusinessLogic: OK
-    BusinessLogic-->>API: PlaceDTO (id, title, owner_id)
-    API-->>Client: 201 Created {place_id, title}
+    Client->>API: POST /api/v1/places (JWT) {title, description, price, latitude, longitude, amenity_ids}
+    API->>API: Verify JWT, extract owner_id
+    break invalid token
+        API-->>Client: 401 Unauthorized
+    end
+    API->>BL: create_place(owner_id, data)
+    BL->>BL: Validate (price >= 0, -90 <= latitude <= 90, -180 <= longitude <= 180)
+    break invalid data
+        BL-->>API: ValidationError
+        API-->>Client: 400 Bad Request
+    end
+    BL->>DB: get(owner_id)
+    DB-->>BL: owner (User)
+    BL->>DB: get amenities(amenity_ids)
+    DB-->>BL: List of Amenity
+    BL->>BL: Create Place, add_amenity() for each
+    BL->>DB: add(place)
+    DB-->>BL: saved place
+    BL-->>API: place data
+    API-->>Client: 201 Created {id, title, owner_id, amenities}
 ```
 
 ---
@@ -150,23 +205,33 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant API
-    participant BusinessLogic
-    participant Database
+    actor Client
+    participant API as API (Presentation Layer)
+    participant BL as HBnBFacade (Business Logic Layer)
+    participant DB as Repository (Persistence Layer)
 
-    Client->>API: POST /api/v1/reviews (JWT, place_id, rating, text)
-    Note over API: Verify JWT — 401 if invalid
-    API->>BusinessLogic: submit_review(user_id, place_id, data)
-    BusinessLogic->>Database: get_place(place_id)
-    Database-->>BusinessLogic: Place record (or 404)
-    BusinessLogic->>Database: find_review(user_id, place_id)
-    Database-->>BusinessLogic: None (or 409)
-    Note over BusinessLogic: validate_rating() — 400 if out of range
-    BusinessLogic->>Database: insert_review(review_record)
-    Database-->>BusinessLogic: review_id, created_at
-    BusinessLogic-->>API: ReviewDTO (id, rating, text)
-    API-->>Client: 201 Created {review_id, place_id}
+    Client->>API: POST /api/v1/reviews (JWT) {place_id, rating, comment}
+    API->>API: Verify JWT, extract user_id
+    break invalid token
+        API-->>Client: 401 Unauthorized
+    end
+    API->>BL: create_review(user_id, data)
+    BL->>DB: get(place_id)
+    DB-->>BL: place or None
+    break place not found
+        BL-->>API: NotFoundError
+        API-->>Client: 404 Not Found
+    end
+    BL->>BL: Validate rating (1-5) and comment
+    break invalid data
+        BL-->>API: ValidationError
+        API-->>Client: 400 Bad Request
+    end
+    BL->>BL: Create Review linked to user and place
+    BL->>DB: add(review)
+    DB-->>BL: saved review
+    BL-->>API: review data
+    API-->>Client: 201 Created {id, rating, comment, user_id, place_id}
 ```
 
 ---
@@ -175,19 +240,21 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant API
-    participant BusinessLogic
-    participant Database
+    actor Client
+    participant API as API (Presentation Layer)
+    participant BL as HBnBFacade (Business Logic Layer)
+    participant DB as Repository (Persistence Layer)
 
-    Client->>API: GET /api/v1/places?city=Paris&price_max=100&page=1
-    API->>BusinessLogic: get_places(filters, pagination)
-    Note over BusinessLogic: Parse and sanitise filters
-    BusinessLogic->>Database: query(filters, limit, offset)
-    Database-->>BusinessLogic: rows[], total_count
-    BusinessLogic->>Database: get_amenities_bulk(place_ids)
-    Database-->>BusinessLogic: amenities_map
-    Note over BusinessLogic: Serialize DTOs
-    BusinessLogic-->>API: PlaceList[] + pagination metadata
-    API-->>Client: 200 OK {results[], total, page, pages}
+    Client->>API: GET /api/v1/places?price_max=100&amenity=wifi
+    API->>BL: get_places(filters)
+    BL->>BL: Parse and validate filters
+    break invalid filter value
+        BL-->>API: ValidationError
+        API-->>Client: 400 Bad Request
+    end
+    BL->>DB: get_all() with filters
+    DB-->>BL: List of Place (may be empty)
+    BL->>BL: Serialize places (id, title, price, latitude, longitude)
+    BL-->>API: list of places
+    API-->>Client: 200 OK [ {id, title, price, ...}, ... ]
 ```

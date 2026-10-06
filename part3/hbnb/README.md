@@ -85,7 +85,9 @@ The token's identity is the user ID, and it carries an `is_admin` claim. Send it
 | `POST /reviews/`                  |        | ✅ not on own place, once per place (400 otherwise)  | ✅                            |
 | `PUT`, `DELETE /reviews/<id>`     |        | Own reviews only (403 otherwise)                     | ✅ any review                 |
 
-Missing or invalid tokens return `401` (`{"msg": "Missing Authorization Header"}`).
+Missing or invalid tokens return `401` (`{"msg": "Missing Authorization Header"}`). Tokens are valid for 1 hour.
+
+CORS is enabled for `/api/*` so the [Part 4](../../part4/README.md) web client can call the API from another origin.
 
 ## SQLAlchemy Persistence (Task 5)
 

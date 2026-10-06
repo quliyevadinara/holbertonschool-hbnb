@@ -1,6 +1,7 @@
 import click
 from flask import Flask
 from flask_bcrypt import Bcrypt
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
@@ -17,6 +18,8 @@ def create_app(config_class="config.DevelopmentConfig"):
     bcrypt.init_app(app)
     jwt.init_app(app)
     db.init_app(app)
+    # The Part 4 front-end is served from another origin
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Imported here because the models need the extensions defined above
     from app.api.v1.amenities import api as amenities_ns

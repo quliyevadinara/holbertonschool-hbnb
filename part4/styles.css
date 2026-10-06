@@ -1,0 +1,313 @@
+/* ---------- Palette and base ---------- */
+:root {
+  --primary: #e85d4a;
+  --primary-dark: #c9473a;
+  --text: #2d3142;
+  --muted: #6b7083;
+  --background: #f7f5f2;
+  --surface: #ffffff;
+  --border: #ddd;
+  --success: #2e7d4f;
+  --error: #c0392b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: "Nunito Sans", Arial, sans-serif;
+  color: var(--text);
+  background-color: var(--background);
+  line-height: 1.5;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  margin: 10px 20px;
+  font-size: 1.8rem;
+}
+
+h2 {
+  font-size: 1.3rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Header and navigation ---------- */
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 30px;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  display: block;
+  height: 48px;
+  width: auto;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-link {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+}
+
+.login-button,
+.logout-button,
+.details-button,
+.form-button {
+  display: inline-block;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.login-button:hover,
+.logout-button:hover,
+.details-button:hover,
+.form-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.logout-button {
+  background-color: var(--text);
+}
+
+/* ---------- Footer ---------- */
+footer {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+footer p {
+  margin: 0;
+}
+
+/* ---------- Index: filter and place cards ---------- */
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px;
+}
+
+.filter select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.places-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.place-card {
+  flex: 1 1 260px;
+  max-width: 320px;
+  margin: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: var(--surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.place-card h3 {
+  margin: 0 0 5px;
+  font-size: 1.15rem;
+}
+
+.place-price {
+  margin: 0 0 15px;
+  color: var(--muted);
+}
+
+.place-price strong {
+  color: var(--text);
+}
+
+.place-card .details-button {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.status-message {
+  margin: 20px;
+  color: var(--muted);
+}
+
+/* ---------- Place details and reviews ---------- */
+.place-details {
+  margin: 0 20px;
+}
+
+.place-details h1 {
+  margin: 10px 0;
+}
+
+.place-info {
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--surface);
+}
+
+.place-info p {
+  margin: 10px 0;
+}
+
+.label {
+  font-weight: 700;
+}
+
+.reviews h2,
+.add-review h2 {
+  margin: 30px 20px 0;
+}
+
+.review-card {
+  margin: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: var(--surface);
+}
+
+.review-card p {
+  margin: 5px 0;
+}
+
+.review-user {
+  font-weight: 700;
+}
+
+.review-rating {
+  color: var(--primary);
+  letter-spacing: 2px;
+}
+
+/* ---------- Forms (login and reviews) ---------- */
+.login-section,
+.add-review-page {
+  max-width: 480px;
+  margin: 20px auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--surface);
+}
+
+.form label {
+  font-weight: 600;
+}
+
+.form input,
+.form textarea,
+.form select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
+  outline: 2px solid var(--primary);
+  border-color: transparent;
+}
+
+.form .form-button {
+  margin-top: 10px;
+  align-self: flex-start;
+}
+
+.review-place {
+  margin: 0 20px;
+}
+
+.error-message,
+.form-message {
+  margin: 5px 0 0;
+}
+
+.error-message,
+.form-message.error {
+  color: var(--error);
+}
+
+.form-message.success {
+  color: var(--success);
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 600px) {
+  header {
+    padding: 10px 16px;
+  }
+
+  main {
+    padding: 10px 0;
+  }
+
+  .place-card {
+    max-width: none;
+  }
+}

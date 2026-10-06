@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HBnB - Add Review</title>
+  <link rel="icon" type="image/png" href="images/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="scripts.js" defer></script>
+</head>
+<body>
+  <header>
+    <a href="index.html"><img src="images/logo.png" alt="HBnB logo" class="logo" width="160" height="48"></a>
+    <nav aria-label="Main navigation">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="login.html" class="login-button" id="login-link">Login</a>
+      <button type="button" class="logout-button" id="logout-button" hidden>Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="add-review" class="add-review add-review-page">
+      <h1>Add a review</h1>
+      <p class="review-place">Place: <a id="place-name" href="index.html">loading...</a></p>
+      <form id="review-form" class="form">
+        <label for="review-text">Your review</label>
+        <textarea id="review-text" name="text" rows="5" required></textarea>
+
+        <label for="rating">Rating</label>
+        <select id="rating" name="rating">
+          <option value="5">5 - Excellent</option>
+          <option value="4">4 - Very good</option>
+          <option value="3">3 - Good</option>
+          <option value="2">2 - Fair</option>
+          <option value="1">1 - Poor</option>
+        </select>
+
+        <button type="submit" class="form-button">Submit review</button>
+        <p id="form-message" class="form-message" role="status" hidden></p>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 HBnB Evolution. All rights reserved.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HBnB - Places</title>
+  <link rel="icon" type="image/png" href="images/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="scripts.js" defer></script>
+</head>
+<body>
+  <header>
+    <a href="index.html"><img src="images/logo.png" alt="HBnB logo" class="logo" width="160" height="48"></a>
+    <nav aria-label="Main navigation">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="login.html" class="login-button" id="login-link">Login</a>
+      <button type="button" class="logout-button" id="logout-button" hidden>Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Places to stay</h1>
+
+    <div class="filter">
+      <label for="price-filter">Max price per night:</label>
+      <select id="price-filter">
+        <option value="10">$10</option>
+        <option value="50">$50</option>
+        <option value="100">$100</option>
+        <option value="All" selected>All</option>
+      </select>
+    </div>
+
+    <section id="places-list" class="places-list" aria-live="polite">
+      <h2 class="visually-hidden">Available places</h2>
+      <p class="status-message">Loading places...</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 HBnB Evolution. All rights reserved.</p>
+  </footer>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 
 class Config:
@@ -6,6 +7,7 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY',
                            'hbnb-development-secret-key-change-me')
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', SECRET_KEY)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     DEBUG = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Let flask-jwt-extended answer auth errors (401/422)

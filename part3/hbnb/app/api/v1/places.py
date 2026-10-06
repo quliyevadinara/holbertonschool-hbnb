@@ -59,7 +59,9 @@ def place_details(place):
     data['amenities'] = [{'id': amenity.id, 'name': amenity.name}
                          for amenity in place.amenities]
     data['reviews'] = [{'id': review.id, 'text': review.text,
-                        'rating': review.rating, 'user_id': review.user.id}
+                        'rating': review.rating, 'user_id': review.user.id,
+                        'user_name': f"{review.user.first_name} "
+                                     f"{review.user.last_name}"}
                        for review in place.reviews]
     return data
 
@@ -95,7 +97,7 @@ class PlaceList(Resource):
     @api.response(200, 'List of places retrieved successfully')
     def get(self):
         """Retrieve a list of all places"""
-        return [{'id': place.id, 'title': place.title,
+        return [{'id': place.id, 'title': place.title, 'price': place.price,
                  'latitude': place.latitude, 'longitude': place.longitude}
                 for place in facade.get_all_places()], 200
 

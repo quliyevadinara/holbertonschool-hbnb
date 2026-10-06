@@ -191,6 +191,21 @@ class TestAmenityAccess(APITestCase):
                                    headers=self.admin, json={"name": "Pool"})
         self.assertEqual(response.status_code, 200)
 
+    def test_amenity_name_is_unique(self):
+        amenity = self.create_amenity("Wi-Fi")
+        response = self.client.post('/api/v1/amenities/', headers=self.admin,
+                                    json={"name": "Wi-Fi"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(),
+                         {"error": "Amenity already exists"})
+        self.create_amenity("Pool")
+        response = self.client.put(f'/api/v1/amenities/{amenity["id"]}',
+                                   headers=self.admin, json={"name": "Pool"})
+        self.assertEqual(response.status_code, 400)
+        response = self.client.put(f'/api/v1/amenities/{amenity["id"]}',
+                                   headers=self.admin, json={"name": "Wi-Fi"})
+        self.assertEqual(response.status_code, 200)
+
     def test_amenities_are_public(self):
         amenity = self.create_amenity()
         self.assertEqual(self.client.get('/api/v1/amenities/').status_code,

@@ -110,6 +110,25 @@ class TestPlaceAndReview(ModelTestCase):
         self.assertEqual([a.name for a in stored.amenities], ["Wi-Fi"])
         self.assertEqual([r.text for r in stored.reviews], ["Great stay!"])
 
+    def test_entity_repositories(self):
+        from app.services import facade
+
+        place = self.make_place()
+        review = Review("Great stay!", 5, place, self.guest)
+        db.session.add_all([place, review, Amenity("Wi-Fi")])
+        db.session.commit()
+
+        self.assertIs(facade.user_repo.get_user_by_email("bob@example.com"),
+                      self.guest)
+        self.assertEqual(facade.place_repo.get_by_owner(self.owner.id),
+                         [place])
+        self.assertEqual(facade.review_repo.get_by_place(place.id), [review])
+        self.assertIs(facade.review_repo.get_by_user_and_place(
+            self.guest.id, place.id), review)
+        self.assertEqual(facade.amenity_repo.get_by_name("Wi-Fi").name,
+                         "Wi-Fi")
+        self.assertEqual(self.owner.places, [place])
+
     def test_review_validation(self):
         place = self.make_place()
         for rating in (0, 6):

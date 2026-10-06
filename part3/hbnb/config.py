@@ -2,7 +2,9 @@ import os
 
 
 class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY', 'default_secret_key')
+    # Development default only: set SECRET_KEY in the environment in production
+    SECRET_KEY = os.getenv('SECRET_KEY',
+                           'hbnb-development-secret-key-change-me')
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', SECRET_KEY)
     DEBUG = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False

@@ -17,11 +17,20 @@ hbnb/
 │   ├── models/                # SQLAlchemy models with validation
 │   ├── services/facade.py     # HBnBFacade
 │   └── persistence/
-│       └── repository.py      # Repository, InMemoryRepository, SQLAlchemyRepository
+│       ├── repository.py      # Repository, InMemoryRepository, SQLAlchemyRepository
+│       ├── user_repository.py
+│       ├── place_repository.py
+│       ├── review_repository.py
+│       └── amenity_repository.py
+├── sql/
+│   ├── schema.sql             # CREATE TABLE statements
+│   ├── initial_data.sql       # admin user + amenities
+│   └── test_crud.sql          # CRUD checks
 ├── tests/
 ├── config.py                  # DevelopmentConfig, TestingConfig
 ├── run.py
-└── requirements.txt
+├── requirements.txt
+└── ER_DIAGRAM.md              # Mermaid ER diagram
 ```
 
 ## Installation and Running
@@ -84,10 +93,38 @@ Missing or invalid tokens return `401` (`{"msg": "Missing Authorization Header"}
 
 The models are mapped to tables `users`, `places`, `reviews`, `amenities`, and the `place_amenity` association table. Relationships: a user owns places and writes reviews; deleting a place deletes its reviews; a user can review a place only once (unique constraint).
 
+## Entity Mapping and Repositories (Tasks 6, 7 and 8)
+
+`BaseModel` is an abstract SQLAlchemy model that gives every table `id`, `created_at`, and `updated_at`. Each entity has its own repository built on `SQLAlchemyRepository`, with the queries specific to it:
+
+| Repository          | Extra queries                                  |
+| ------------------- | ---------------------------------------------- |
+| `UserRepository`    | `get_user_by_email(email)`                     |
+| `PlaceRepository`   | `get_by_owner(owner_id)`                       |
+| `ReviewRepository`  | `get_by_place(place_id)`, `get_by_user_and_place(user_id, place_id)` |
+| `AmenityRepository` | `get_by_name(name)`                            |
+
+Relationships are declared with `relationship()` and `back_populates`, so both sides stay in sync (`user.places`, `place.owner`, `place.reviews`, `review.user`, `place.amenities`). The full schema is shown in [ER_DIAGRAM.md](ER_DIAGRAM.md).
+
+## SQL Scripts (Task 9)
+
+The scripts in [`sql/`](sql/) build the same schema without the ORM. Table and column names match the models, so the application can run on a database created this way.
+
+```bash
+sqlite3 instance/development.db < sql/schema.sql
+sqlite3 instance/development.db < sql/initial_data.sql
+```
+
+`initial_data.sql` inserts the administrator (`admin@hbnb.io`, password `admin1234`, stored as a bcrypt hash, id `36c9050e-ddd3-4c3b-9731-9f487208bbc1`) and the amenities WiFi, Swimming Pool, and Air Conditioning. `test_crud.sql` creates, reads, updates, and deletes rows to check the schema, including cascade deletes. Change the admin password after the first login.
+
+## ER Diagram (Task 10)
+
+See [ER_DIAGRAM.md](ER_DIAGRAM.md): a Mermaid.js diagram of the `users`, `places`, `reviews`, `amenities`, and `place_amenity` tables and their one-to-many and many-to-many relationships.
+
 ## Tests
 
 ```bash
 python -m unittest discover -s tests -t .
 ```
 
-36 tests cover the configuration, password hashing, login, every access rule (401/403/400), admin bypass, validation, and database persistence. Each test runs on a fresh in-memory database.
+38 tests cover the configuration, password hashing, login, every access rule (401/403/400), admin bypass, validation, the entity repositories, and database persistence. Each test runs on a fresh in-memory database.

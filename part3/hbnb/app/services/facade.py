@@ -2,7 +2,10 @@ from app.models.amenity import Amenity
 from app.models.place import Place
 from app.models.review import Review
 from app.models.user import User
-from app.persistence.repository import SQLAlchemyRepository
+from app.persistence.amenity_repository import AmenityRepository
+from app.persistence.place_repository import PlaceRepository
+from app.persistence.review_repository import ReviewRepository
+from app.persistence.user_repository import UserRepository
 
 
 class HBnBFacade:
@@ -14,10 +17,10 @@ class HBnBFacade:
     REVIEW_FIELDS = ('text', 'rating')
 
     def __init__(self):
-        self.user_repo = SQLAlchemyRepository(User)
-        self.place_repo = SQLAlchemyRepository(Place)
-        self.review_repo = SQLAlchemyRepository(Review)
-        self.amenity_repo = SQLAlchemyRepository(Amenity)
+        self.user_repo = UserRepository()
+        self.place_repo = PlaceRepository()
+        self.review_repo = ReviewRepository()
+        self.amenity_repo = AmenityRepository()
 
     @staticmethod
     def _pick(data, allowed):
@@ -33,7 +36,7 @@ class HBnBFacade:
         return self.user_repo.get(user_id)
 
     def get_user_by_email(self, email):
-        return self.user_repo.get_by_attribute('email', email)
+        return self.user_repo.get_user_by_email(email)
 
     def get_all_users(self):
         return self.user_repo.get_all()
@@ -46,7 +49,15 @@ class HBnBFacade:
         return user
 
     # ------------------------------------------------------------ amenities
+    def _check_amenity_name(self, name, amenity_id=None):
+        if not isinstance(name, str):
+            return
+        existing = self.amenity_repo.get_by_name(name.strip())
+        if existing and existing.id != amenity_id:
+            raise ValueError("Amenity already exists")
+
     def create_amenity(self, amenity_data):
+        self._check_amenity_name(amenity_data.get('name'))
         amenity = Amenity(**self._pick(amenity_data, self.AMENITY_FIELDS))
         self.amenity_repo.add(amenity)
         return amenity
@@ -61,6 +72,7 @@ class HBnBFacade:
         amenity = self.get_amenity(amenity_id)
         if not amenity:
             return None
+        self._check_amenity_name(amenity_data.get('name'), amenity_id)
         self.amenity_repo.update(
             amenity_id, self._pick(amenity_data, self.AMENITY_FIELDS))
         return amenity
@@ -100,6 +112,9 @@ class HBnBFacade:
     def get_all_places(self):
         return self.place_repo.get_all()
 
+    def get_places_by_owner(self, owner_id):
+        return self.place_repo.get_by_owner(owner_id)
+
     def update_place(self, place_id, place_data):
         place = self.get_place(place_id)
         if not place:
@@ -131,7 +146,7 @@ class HBnBFacade:
             raise ValueError("Place not found")
         if place.owner_id == user.id:
             raise ValueError("You cannot review your own place.")
-        if any(review.user_id == user.id for review in place.reviews):
+        if self.review_repo.get_by_user_and_place(user.id, place.id):
             raise ValueError("You have already reviewed this place.")
         review = Review(place=place, user=user,
                         **self._pick(review_data, self.REVIEW_FIELDS))
@@ -145,10 +160,9 @@ class HBnBFacade:
         return self.review_repo.get_all()
 
     def get_reviews_by_place(self, place_id):
-        place = self.get_place(place_id)
-        if not place:
+        if not self.get_place(place_id):
             return None
-        return place.reviews
+        return self.review_repo.get_by_place(place_id)
 
     def update_review(self, review_id, review_data):
         review = self.get_review(review_id)
